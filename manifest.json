@@ -1,0 +1,12 @@
+{
+  "name": "Dashboard Lámpara ESP32",
+  "short_name": "Lámpara ESP32",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#080c18",
+  "theme_color": "#0b1020",
+  "lang": "es",
+  "icons": [
+    {"src":"icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

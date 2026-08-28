@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="Dashboard PWA para monitorear y controlar una lámpara ESP32.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <title>Lámpara ESP32</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">ESP32 • SUPABASE</span>
+        <h1>Control de lámpara</h1>
+      </div>
+      <div id="connectionBadge" class="badge offline">● Desconectado</div>
+    </header>
+
+    <section class="hero-grid">
+      <article class="card lamp-card">
+        <div class="card-head">
+          <div>
+            <span class="label">LÁMPARA</span>
+            <h2 id="lampState">—</h2>
+          </div>
+          <div id="lampIcon" class="lamp-icon">💡</div>
+        </div>
+        <button id="toggleBtn" class="primary-btn" disabled>Conectando…</button>
+        <div class="control-row">
+          <label for="brightness">Brillo <strong id="brightnessValue">—</strong></label>
+          <input id="brightness" type="range" min="0" max="100" value="75" disabled>
+        </div>
+        <button id="saveBrightness" class="secondary-btn" disabled>Aplicar brillo</button>
+      </article>
+
+      <article class="card status-card">
+        <span class="label">DISPOSITIVO</span>
+        <h2 id="deviceName">—</h2>
+        <div class="status-line"><span>Última actualización</span><strong id="lastSeen">—</strong></div>
+        <div class="status-line"><span>Temperatura</span><strong id="temperature">—</strong></div>
+        <div class="status-line"><span>Voltaje</span><strong id="voltage">—</strong></div>
+        <div class="status-line"><span>Corriente</span><strong id="current">—</strong></div>
+        <div class="status-line"><span>Potencia</span><strong id="power">—</strong></div>
+      </article>
+    </section>
+
+    <section class="card chart-card">
+      <div class="card-head">
+        <div>
+          <span class="label">HISTORIAL</span>
+          <h2>Potencia</h2>
+        </div>
+        <select id="historyHours">
+          <option value="1">1 hora</option>
+          <option value="6" selected>6 horas</option>
+          <option value="24">24 horas</option>
+          <option value="72">3 días</option>
+        </select>
+      </div>
+      <canvas id="powerChart" height="220"></canvas>
+    </section>
+
+    <footer>
+      <span>ESP32 Lamp Dashboard</span>
+      <button id="installBtn" class="link-btn" hidden>Instalar PWA</button>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
