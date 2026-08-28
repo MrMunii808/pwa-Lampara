@@ -2,7 +2,7 @@
 // los valores de abajo antes de publicar. SOLO usa la anon/public key de Supabase.
 // NUNCA pongas aquí la service_role key.
 window.SUPABASE_CONFIG = {
-  url: "https://TU-PROYECTO.supabase.co",
-  anonKey: "TU_SUPABASE_ANON_KEY",
+  url: "https://kottyewarcwmqwmyakji.supabase.co",
+  anonKey: "sb_publishable_TQJ96wL3sgnW76tW5snsXA_q2rOsH4S",
   deviceId: "lampara-01"
 };
