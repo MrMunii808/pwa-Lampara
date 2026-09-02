@@ -1,70 +1,60 @@
-# Dashboard PWA — ESP32 + Supabase + GitHub Pages
+# PWA Lámpara ESP32 v2
 
-## 1. Estructura
+Versión refactorizada del dashboard original. Mantiene el contrato existente con Supabase y el `deviceId` `lampara-01`.
 
-- `index.html` — dashboard
-- `css/styles.css` — interfaz
-- `js/config.js` — URL/anon key/device ID
-- `js/app.js` — lógica Supabase + gráficos + comandos
-- `manifest.json` — PWA
-- `service-worker.js` — caché/offline
-- `supabase/schema.sql` — tablas, RLS y políticas demo
-- `icons/icon.svg` — icono
+## Qué cambia
 
-## 2. Supabase
+- Estado del ESP32 mediante `devices.last_seen` con ventana de 90 segundos.
+- Supabase Realtime para `devices` y `telemetry`.
+- Fallback REST cada 15 segundos si Realtime falla.
+- Reintento al volver a tener Internet y al volver a la pestaña.
+- Service Worker **Network First** para evitar servir una versión vieja desde caché.
+- Assets versionados con `?v=2.0.0`.
+- Estado de sincronización visible.
+- Manejo de errores visible en la interfaz.
+- Comandos `power` y `brightness` conservados.
+- Historial de potencia conservado.
+- Compatible con GitHub Pages en raíz o subcarpeta.
 
-1. Crea un proyecto en Supabase.
-2. Abre SQL Editor.
-3. Ejecuta `supabase/schema.sql`.
-4. En Database > Replication/Realtime, habilita `devices` y `telemetry`.
-5. Copia Project URL y la clave `anon/public` en `js/config.js`.
-6. Mantén `deviceId` como `lampara-01` o cambia ambos lados.
+## Publicación en GitHub Pages
 
-## 3. GitHub Pages
+Subí **el contenido de esta carpeta** al repositorio. No cambies las rutas relativas.
 
-Sube toda esta carpeta a un repositorio.
+Luego:
 
-En GitHub:
-Settings → Pages → Deploy from a branch → `main` → `/ (root)`.
+1. GitHub → Settings → Pages.
+2. Seleccioná la rama `main` y `/ (root)`.
+3. Abrí la URL HTTPS de GitHub Pages.
+4. Hacé una recarga fuerte una vez (`Ctrl + Shift + R`).
 
-La PWA debe servirse por HTTPS para que el service worker funcione.
+## Si el navegador conserva la PWA vieja
 
-## 4. Contrato esperado del ESP32
+La v2 intenta actualizar y reemplazar el Service Worker automáticamente. Si ya tenías instalada la PWA anterior y sigue mostrando una versión antigua, abrí la URL en una pestaña normal, recargá con `Ctrl + Shift + R` y volvé a abrirla.
 
-El ESP32 debería terminar enviando/actualizando datos con esta forma conceptual:
+En Chrome también se puede comprobar desde DevTools → Application → Service Workers que el worker activo sea `2.0.0`.
 
-{
-  "device_id": "lampara-01",
-  "lamp_on": true,
-  "brightness": 75,
-  "temperature": 28.4,
-  "voltage": 220.1,
-  "current": 0.12,
-  "power": 26.4,
-  "last_seen": "2026-08-28T13:00:00Z"
-}
+## Supabase
 
-Y registrar muestras en `telemetry`.
+La configuración actual coincide con el proyecto utilizado por el firmware:
 
-Para controlar la lámpara, la PWA inserta en `commands`:
+- URL: `https://kottyewarcwmqwmyakji.supabase.co`
+- Device ID: `lampara-01`
+- Publishable key: configurada en `js/config.js`
 
-- `{type:"power", value:true/false}`
-- `{type:"brightness", value:0..100}`
+No se usa `service_role`.
 
-El ESP32 debe leer comandos pendientes y marcar `executed_at`.
+## Realtime
 
-## 5. Seguridad
+La PWA intenta suscribirse a cambios de `devices` y `telemetry`. Si la publicación Realtime de esas tablas no está habilitada, la PWA sigue funcionando mediante REST cada 15 segundos.
 
-No pongas la `service_role` key en GitHub Pages ni en el ESP32.
+## Comprobación esperada
 
-La configuración incluida usa políticas públicas de DEMO para que puedas probar rápidamente. Para una instalación real conviene añadir Supabase Auth y restringir RLS, y usar una Edge Function/backend autenticado para el ESP32.
+Con el ESP32 funcionando, Supabase debería mostrar un `devices.last_seen` reciente. La PWA debe mostrar:
 
-## 6. GitHub Pages con repositorio en subcarpeta
+`● ESP32 conectado`
 
-El proyecto usa rutas relativas (`./`), por lo que funciona también cuando la URL es:
+y debajo:
 
-`https://usuario.github.io/nombre-del-repo/`
+`Sincronizado ahora` / `Sincronizado hace Ns`.
 
-## 7. Próximo paso
-
-Cuando tengas el código del ESP32, adapta el firmware al contrato anterior. Si me lo pasas, puedo prepararte el `.ino` para publicar telemetría y consumir los comandos de esta PWA.
+El firmware existente actualiza `devices.last_seen` aproximadamente cada 10 segundos, por lo que la ventana de 90 segundos es suficiente.

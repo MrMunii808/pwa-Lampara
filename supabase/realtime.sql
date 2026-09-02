@@ -1,0 +1,8 @@
+-- Opcional: ejecutar si Realtime todavía no está habilitado para estas tablas.
+-- Verificá en Supabase > Database > Publications que las tablas devices y telemetry
+-- estén incluidas en supabase_realtime.
+--
+-- En proyectos donde la publicación ya existe, no hace falta ejecutar nada.
+--
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.devices;
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.telemetry;

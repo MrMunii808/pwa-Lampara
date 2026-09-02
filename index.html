@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b1020">
+  <meta name="theme-color" content="#080c18">
   <meta name="description" content="Dashboard PWA para monitorear y controlar una lámpara ESP32.">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.json?v=2.0.0">
+  <link rel="icon" href="./icons/icon.svg?v=2.0.0" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/styles.css?v=2.0.0">
   <title>Lámpara ESP32</title>
-  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <main class="app-shell">
@@ -16,9 +16,15 @@
       <div>
         <span class="eyebrow">ESP32 • SUPABASE</span>
         <h1>Control de lámpara</h1>
+        <p class="subtitle">Estado y control en tiempo real</p>
       </div>
-      <div id="connectionBadge" class="badge offline">● Desconectado</div>
+      <div class="connection-wrap">
+        <div id="connectionBadge" class="badge offline">● ESP32 desconectado</div>
+        <div id="syncStatus" class="sync-status">Esperando sincronización…</div>
+      </div>
     </header>
+
+    <div id="errorBanner" class="error-banner" hidden></div>
 
     <section class="hero-grid">
       <article class="card lamp-card">
@@ -27,19 +33,31 @@
             <span class="label">LÁMPARA</span>
             <h2 id="lampState">—</h2>
           </div>
-          <div id="lampIcon" class="lamp-icon">💡</div>
+          <div id="lampIcon" class="lamp-icon" aria-hidden="true">💡</div>
         </div>
+
         <button id="toggleBtn" class="primary-btn" disabled>Conectando…</button>
+
         <div class="control-row">
-          <label for="brightness">Brillo <strong id="brightnessValue">—</strong></label>
+          <label for="brightness">
+            <span>Brillo</span>
+            <strong id="brightnessValue">—</strong>
+          </label>
           <input id="brightness" type="range" min="0" max="100" value="75" disabled>
         </div>
+
         <button id="saveBrightness" class="secondary-btn" disabled>Aplicar brillo</button>
       </article>
 
       <article class="card status-card">
-        <span class="label">DISPOSITIVO</span>
-        <h2 id="deviceName">—</h2>
+        <div class="card-head compact">
+          <div>
+            <span class="label">DISPOSITIVO</span>
+            <h2 id="deviceName">—</h2>
+          </div>
+          <span id="deviceId" class="device-id">—</span>
+        </div>
+
         <div class="status-line"><span>Última actualización</span><strong id="lastSeen">—</strong></div>
         <div class="status-line"><span>Temperatura</span><strong id="temperature">—</strong></div>
         <div class="status-line"><span>Voltaje</span><strong id="voltage">—</strong></div>
@@ -54,25 +72,36 @@
           <span class="label">HISTORIAL</span>
           <h2>Potencia</h2>
         </div>
-        <select id="historyHours">
+        <select id="historyHours" aria-label="Período del historial">
           <option value="1">1 hora</option>
           <option value="6" selected>6 horas</option>
           <option value="24">24 horas</option>
           <option value="72">3 días</option>
         </select>
       </div>
-      <canvas id="powerChart" height="220"></canvas>
+      <div class="chart-wrap">
+        <canvas id="powerChart" height="240"></canvas>
+        <div id="chartEmpty" class="chart-empty" hidden>No hay telemetría para el período seleccionado.</div>
+      </div>
     </section>
 
     <footer>
-      <span>ESP32 Lamp Dashboard</span>
-      <button id="installBtn" class="link-btn" hidden>Instalar PWA</button>
+      <span>ESP32 Lamp Dashboard · v2.0</span>
+      <div class="footer-actions">
+        <button id="refreshBtn" class="link-btn">Actualizar</button>
+        <button id="installBtn" class="link-btn" hidden>Instalar PWA</button>
+      </div>
     </footer>
   </main>
 
-  <div id="toast" class="toast"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/app.js"></script>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+  <script src="./js/config.js?v=2.0.0"></script>
+  <script src="./js/api.js?v=2.0.0"></script>
+  <script src="./js/realtime.js?v=2.0.0"></script>
+  <script src="./js/ui.js?v=2.0.0"></script>
+  <script src="./js/chart.js?v=2.0.0"></script>
+  <script src="./js/app.js?v=2.0.0"></script>
 </body>
 </html>
