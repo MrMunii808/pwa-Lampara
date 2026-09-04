@@ -1,11 +1,7 @@
-# v2.0.0
+# PWA Lampara - V3
 
-- Refactor de `app.js` en módulos API, Realtime, UI y gráfico.
-- Realtime para `devices` y `telemetry`.
-- Fallback de polling REST de 15 s.
-- Service Worker Network First y limpieza de cachés anteriores.
-- Versionado de assets para invalidar caché.
-- Reconexión al volver online y al volver a la pestaña.
-- Indicador de edad de `last_seen`.
-- Manejo de errores Supabase visible.
-- Conservado el contrato `lampara-01`, `devices`, `telemetry`, `commands`.
+- Confirmación real de comandos: la PWA ya no muestra éxito optimista.
+- Después de insertar un comando en `commands`, espera `executed_at` y verifica que `devices.lamp_on`/`brightness` coincida con lo solicitado.
+- Si no hay confirmación en 12 segundos, muestra advertencia y no declara que la lámpara cambió.
+- Compatible con el firmware V5 que actualiza `devices`, inserta `telemetry` y marca `commands.executed_at`.
+- Supabase y `device_id` permanecen fijos en la configuración; WiFiManager solo configura Wi-Fi.

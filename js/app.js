@@ -61,23 +61,58 @@
     window.LampChart.draw(telemetry);
   }
 
+  async function waitForCommandConfirmation(commandId, type, value, timeoutMs = 12000) {
+    const started = Date.now();
+    const expectedPower = type === "power" ? Boolean(value) : null;
+    const expectedBrightness = type === "brightness" ? Number(value) : null;
+
+    while (Date.now() - started < timeoutMs) {
+      const commandRow = await window.LampAPI.getCommand(commandId);
+      const confirmedByCommand = Boolean(commandRow?.executed_at);
+
+      const current = await window.LampAPI.getDevice();
+      const stateMatches = type === "power"
+        ? Boolean(current?.lamp_on) === expectedPower
+        : Number(current?.brightness) === expectedBrightness;
+
+      if (confirmedByCommand && stateMatches) {
+        return { confirmed: true, command: commandRow, device: current };
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    return { confirmed: false };
+  }
+
   async function command(type, value, successMessage) {
     setControlsBusy(true);
+    setSync("Enviando comando al ESP32…");
     try {
-      await window.LampAPI.sendCommand(type, value);
-      toast(successMessage);
-      // La UI se actualiza optimistamente; Realtime/ESP32 confirmará el estado real.
-      if (device) {
-        if (type === "power") device = { ...device, lamp_on: Boolean(value) };
-        if (type === "brightness") {
-          device = { ...device, brightness: Number(value), lamp_on: Number(value) > 0 };
-        }
+      const commandRow = await window.LampAPI.sendCommand(type, value);
+      toast("Comando enviado. Esperando confirmación del ESP32…", 3500);
+
+      const result = await waitForCommandConfirmation(commandRow.id, type, value);
+
+      if (result.confirmed) {
+        device = result.device;
         renderDevice(device);
+        setError("");
+        setSync(`Confirmado por ESP32 · ${formatAge(device.last_seen)}`);
+        toast(successMessage + " ✓ ESP32 confirmó", 3500);
+        return;
       }
+
+      // No declaramos éxito si Supabase no confirma que el ESP32 ejecutó el comando.
+      await loadDevice({ silent: true });
+      setSync("Comando enviado, pero sin confirmación del ESP32");
+      toast("⚠ Comando enviado, pero el ESP32 no confirmó la ejecución", 5000);
+      setError("El comando llegó a Supabase, pero todavía no hay confirmación de ejecución del ESP32. Revisá el monitor serial.");
     } catch (error) {
       console.error("[PWA] command", error);
-      toast(`No se pudo enviar: ${error.message || "error"}`);
+      toast(`No se pudo enviar: ${error.message || "error"}`, 5000);
       setError(`No se pudo enviar el comando: ${error.message || error}`);
+      setSync("Error al enviar comando");
     } finally {
       setControlsBusy(false);
     }
@@ -165,7 +200,7 @@
   async function registerServiceWorker() {
     if (!("serviceWorker" in navigator)) return;
     try {
-      const registration = await navigator.serviceWorker.register("./service-worker.js?v=2.0.0", { updateViaCache: "none" });
+      const registration = await navigator.serviceWorker.register("./service-worker.js?v=3.0.0", { updateViaCache: "none" });
       await registration.update();
     } catch (error) {
       console.warn("[PWA] Service Worker no disponible", error);

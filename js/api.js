@@ -39,8 +39,19 @@
     const { data, error } = await client
       .from("commands")
       .insert({ device_id: cfg.deviceId, type, value })
-      .select("id,type,value,created_at")
+      .select("id,type,value,created_at,executed_at")
       .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function getCommand(id) {
+    const { data, error } = await client
+      .from("commands")
+      .select("id,type,value,created_at,executed_at")
+      .eq("id", id)
+      .eq("device_id", cfg.deviceId)
+      .maybeSingle();
     if (error) throw error;
     return data;
   }
@@ -49,6 +60,7 @@
     client,
     getDevice,
     getTelemetry,
-    sendCommand
+    sendCommand,
+    getCommand
   };
 })();
