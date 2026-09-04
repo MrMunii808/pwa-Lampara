@@ -8,8 +8,14 @@
   }
 
   const client = window.supabase.createClient(cfg.url, cfg.anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    realtime: { params: { eventsPerSecond: 10 } }
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    },
+    realtime: {
+      params: { eventsPerSecond: 20 }
+    }
   });
 
   async function getDevice() {
@@ -56,11 +62,23 @@
     return data;
   }
 
-  window.LampAPI = {
+  async function getRecentCommands(limit = 10) {
+    const { data, error } = await client
+      .from("commands")
+      .select("id,type,value,created_at,executed_at")
+      .eq("device_id", cfg.deviceId)
+      .order("id", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data || [];
+  }
+
+  window.LampAPI = Object.freeze({
     client,
     getDevice,
     getTelemetry,
     sendCommand,
-    getCommand
-  };
+    getCommand,
+    getRecentCommands
+  });
 })();

@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080c18">
-  <meta name="description" content="Dashboard PWA para monitorear y controlar una lámpara ESP32.">
-  <link rel="manifest" href="./manifest.json?v=2.0.0">
-  <link rel="icon" href="./icons/icon.svg?v=2.0.0" type="image/svg+xml">
-  <link rel="stylesheet" href="./css/styles.css?v=2.0.0">
+  <meta name="description" content="Dashboard PWA para controlar y monitorear una lámpara ESP32.">
+  <link rel="manifest" href="./manifest.json?v=4.0.0">
+  <link rel="icon" href="./icons/icon.svg?v=4.0.0" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/styles.css?v=4.0.0">
   <title>Lámpara ESP32</title>
 </head>
 <body>
@@ -16,11 +16,11 @@
       <div>
         <span class="eyebrow">ESP32 • SUPABASE</span>
         <h1>Control de lámpara</h1>
-        <p class="subtitle">Estado y control en tiempo real</p>
+        <p class="subtitle">Control, telemetría y confirmación de ejecución</p>
       </div>
       <div class="connection-wrap">
         <div id="connectionBadge" class="badge offline">● ESP32 desconectado</div>
-        <div id="syncStatus" class="sync-status">Esperando sincronización…</div>
+        <div id="syncStatus" class="sync-status">Inicializando…</div>
       </div>
     </header>
 
@@ -37,6 +37,11 @@
         </div>
 
         <button id="toggleBtn" class="primary-btn" disabled>Conectando…</button>
+
+        <div id="commandStatus" class="command-status idle" aria-live="polite">
+          <strong id="commandStatusTitle">Sin comandos recientes</strong>
+          <span id="commandStatusDetail">La confirmación real aparecerá aquí después de cada acción.</span>
+        </div>
 
         <div class="control-row">
           <label for="brightness">
@@ -58,7 +63,7 @@
           <span id="deviceId" class="device-id">—</span>
         </div>
 
-        <div class="status-line"><span>Última actualización</span><strong id="lastSeen">—</strong></div>
+        <div class="status-line"><span>Último contacto</span><strong id="lastSeen">—</strong></div>
         <div class="status-line"><span>Temperatura</span><strong id="temperature">—</strong></div>
         <div class="status-line"><span>Voltaje</span><strong id="voltage">—</strong></div>
         <div class="status-line"><span>Corriente</span><strong id="current">—</strong></div>
@@ -86,7 +91,7 @@
     </section>
 
     <footer>
-      <span>ESP32 Lamp Dashboard · v2.0</span>
+      <span>ESP32 Lamp Dashboard · v4.0.0</span>
       <div class="footer-actions">
         <button id="refreshBtn" class="link-btn">Actualizar</button>
         <button id="installBtn" class="link-btn" hidden>Instalar PWA</button>
@@ -97,11 +102,11 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
-  <script src="./js/config.js?v=2.0.0"></script>
-  <script src="./js/api.js?v=2.0.0"></script>
-  <script src="./js/realtime.js?v=2.0.0"></script>
-  <script src="./js/ui.js?v=2.0.0"></script>
-  <script src="./js/chart.js?v=2.0.0"></script>
-  <script src="./js/app.js?v=2.0.0"></script>
+  <script src="./js/config.js?v=4.0.0"></script>
+  <script src="./js/api.js?v=4.0.0"></script>
+  <script src="./js/realtime.js?v=4.0.0"></script>
+  <script src="./js/ui.js?v=4.0.0"></script>
+  <script src="./js/chart.js?v=4.0.0"></script>
+  <script src="./js/app.js?v=4.0.0"></script>
 </body>
 </html>

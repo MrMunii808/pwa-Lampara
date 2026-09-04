@@ -3,7 +3,7 @@
     const canvas = document.getElementById("powerChart");
     const empty = document.getElementById("chartEmpty");
     const ctx = canvas.getContext("2d");
-    const width = Math.max(canvas.clientWidth, 280);
+    const width = Math.max(320, canvas.parentElement.clientWidth || 600);
     const height = 240;
     const dpr = window.devicePixelRatio || 1;
 
@@ -13,13 +13,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    if (!data.length) {
-      empty.hidden = false;
-      return;
-    }
-    empty.hidden = true;
-
-    const points = data.map(row => ({
+    const points = (data || []).map(row => ({
       time: new Date(row.created_at).getTime(),
       power: Number(row.power) || 0
     })).filter(p => Number.isFinite(p.time));
@@ -28,11 +22,15 @@
       empty.hidden = false;
       return;
     }
+    empty.hidden = true;
 
     const max = Math.max(...points.map(p => p.power), 1);
-    const pad = { left: 46, right: 14, top: 18, bottom: 30 };
+    const pad = { left: 50, right: 14, top: 18, bottom: 30 };
     const plotW = width - pad.left - pad.right;
     const plotH = height - pad.top - pad.bottom;
+    const minTime = points[0].time;
+    const maxTime = points[points.length - 1].time;
+    const timeSpan = Math.max(maxTime - minTime, 1);
 
     ctx.strokeStyle = "#28334b";
     ctx.lineWidth = 1;
@@ -45,13 +43,8 @@
       ctx.moveTo(pad.left, y);
       ctx.lineTo(width - pad.right, y);
       ctx.stroke();
-      const label = (max * (1 - i / 3)).toFixed(1);
-      ctx.fillText(`${label} W`, 4, y + 4);
+      ctx.fillText(`${(max * (1 - i / 3)).toFixed(1)} W`, 4, y + 4);
     }
-
-    const minTime = points[0].time;
-    const maxTime = points[points.length - 1].time;
-    const timeSpan = Math.max(maxTime - minTime, 1);
 
     ctx.beginPath();
     points.forEach((point, index) => {
@@ -73,5 +66,5 @@
     ctx.fillText(end, width - pad.right - endWidth, height - 8);
   }
 
-  window.LampChart = { draw };
+  window.LampChart = Object.freeze({ draw });
 })();

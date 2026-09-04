@@ -1,22 +1,34 @@
 (function () {
   let channel = null;
   let status = "CLOSED";
+  let reconnectTimer = null;
 
-  function start(onDevice, onTelemetry, onStatus) {
-    if (channel) stop();
+  function stop() {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+    if (channel) {
+      window.LampAPI.client.removeChannel(channel);
+      channel = null;
+    }
+    status = "CLOSED";
+  }
+
+  function start({ onDevice, onTelemetry, onCommand, onStatus, onError } = {}) {
+    stop();
 
     const cfg = window.SUPABASE_CONFIG;
     const client = window.LampAPI.client;
+    const channelName = `lamp-${cfg.deviceId}-v4-${Date.now()}`;
 
     channel = client
-      .channel(`lamp-${cfg.deviceId}-v2`)
+      .channel(channelName)
       .on("postgres_changes", {
         event: "*",
         schema: "public",
         table: "devices",
         filter: `device_id=eq.${cfg.deviceId}`
       }, payload => {
-        if (payload.new) onDevice(payload.new);
+        if (payload?.new) onDevice?.(payload.new);
       })
       .on("postgres_changes", {
         event: "INSERT",
@@ -24,20 +36,30 @@
         table: "telemetry",
         filter: `device_id=eq.${cfg.deviceId}`
       }, payload => {
-        if (payload.new) onTelemetry(payload.new);
+        if (payload?.new) onTelemetry?.(payload.new);
       })
-      .subscribe((newStatus) => {
-        status = newStatus;
-        onStatus?.(newStatus);
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "commands",
+        filter: `device_id=eq.${cfg.deviceId}`
+      }, payload => {
+        if (payload?.new) onCommand?.(payload.new);
+      })
+      .subscribe((newStatus, error) => {
+        status = newStatus || "UNKNOWN";
+        onStatus?.(status, error);
+
+        if (error) onError?.(error);
+
+        if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(status)) {
+          clearTimeout(reconnectTimer);
+          reconnectTimer = setTimeout(() => {
+            start({ onDevice, onTelemetry, onCommand, onStatus, onError });
+          }, window.LAMP_APP_CONFIG.realtimeReconnectMs);
+        }
       });
   }
 
-  function stop() {
-    if (!channel) return;
-    window.LampAPI.client.removeChannel(channel);
-    channel = null;
-    status = "CLOSED";
-  }
-
-  window.LampRealtime = { start, stop, getStatus: () => status };
+  window.LampRealtime = Object.freeze({ start, stop, getStatus: () => status });
 })();

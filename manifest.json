@@ -7,7 +7,7 @@
   "background_color": "#080c18",
   "theme_color": "#0b1020",
   "lang": "es",
-  "description": "Control y monitoreo en tiempo real de una lámpara ESP32.",
+  "description": "Control y monitoreo de una lámpara ESP32 mediante Supabase.",
   "icons": [
     {"src":"icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
   ]

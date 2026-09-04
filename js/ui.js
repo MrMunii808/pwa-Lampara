@@ -1,7 +1,7 @@
 (function () {
   const $ = id => document.getElementById(id);
 
-  function toast(message, duration = 2600) {
+  function toast(message, duration = 3000) {
     const el = $("toast");
     el.textContent = message;
     el.classList.add("show");
@@ -28,7 +28,8 @@
   function isOnline(device) {
     if (!device?.last_seen) return false;
     const timestamp = new Date(device.last_seen).getTime();
-    return Number.isFinite(timestamp) && Date.now() - timestamp < window.LAMP_APP_CONFIG.onlineWindowMs;
+    if (!Number.isFinite(timestamp)) return false;
+    return Date.now() - timestamp <= window.LAMP_APP_CONFIG.onlineWindowMs;
   }
 
   function formatNumber(value, unit = "", decimals = 1) {
@@ -59,26 +60,31 @@
   function renderDevice(device) {
     if (!device) {
       $("deviceName").textContent = "No encontrado";
+      $("deviceId").textContent = window.SUPABASE_CONFIG.deviceId;
+      $("lampState").textContent = "Sin datos";
       setBadge(false);
       setSync("El dispositivo no existe en Supabase");
       return;
     }
 
+    const on = Boolean(device.lamp_on);
+    const brightness = Number(device.brightness ?? 0);
+
     $("deviceName").textContent = device.name || device.device_id;
     $("deviceId").textContent = device.device_id || "—";
-    $("lampState").textContent = device.lamp_on ? "Encendida" : "Apagada";
-    $("lampIcon").classList.toggle("on", Boolean(device.lamp_on));
-    $("brightness").value = device.brightness ?? 0;
-    $("brightnessValue").textContent = `${device.brightness ?? 0}%`;
+    $("lampState").textContent = on ? "Encendida" : "Apagada";
+    $("lampIcon").classList.toggle("on", on);
+    $("brightness").value = brightness;
+    $("brightnessValue").textContent = `${brightness}%`;
     $("temperature").textContent = formatNumber(device.temperature, " °C");
     $("voltage").textContent = formatNumber(device.voltage, " V");
     $("current").textContent = formatNumber(device.current, " A");
     $("power").textContent = formatNumber(device.power, " W");
     $("lastSeen").textContent = formatDate(device.last_seen);
     setBadge(isOnline(device));
-    setSync(device.last_seen ? `Sincronizado ${formatAge(device.last_seen)}` : "Sin last_seen");
+    setSync(device.last_seen ? `Último contacto: ${formatAge(device.last_seen)}` : "Sin last_seen");
 
-    $("toggleBtn").textContent = device.lamp_on ? "Apagar lámpara" : "Encender lámpara";
+    $("toggleBtn").textContent = on ? "Apagar lámpara" : "Encender lámpara";
     $("toggleBtn").disabled = false;
     $("brightness").disabled = false;
     $("saveBrightness").disabled = false;
@@ -87,9 +93,19 @@
   function setControlsBusy(busy) {
     $("toggleBtn").disabled = busy;
     $("saveBrightness").disabled = busy;
+    $("brightness").disabled = busy;
+    document.body.classList.toggle("command-busy", busy);
   }
 
-  window.LampUI = {
-    $, toast, setError, setBadge, setSync, isOnline, formatAge, renderDevice, setControlsBusy
-  };
+  function setCommandStatus(kind, title, detail) {
+    const box = $("commandStatus");
+    box.className = `command-status ${kind}`;
+    $("commandStatusTitle").textContent = title;
+    $("commandStatusDetail").textContent = detail;
+  }
+
+  window.LampUI = Object.freeze({
+    $, toast, setError, setBadge, setSync, isOnline, formatAge,
+    formatDate, renderDevice, setControlsBusy, setCommandStatus
+  });
 })();
